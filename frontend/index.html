@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <title>Plataforma DevOps - IDP</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body { background-color: #f4f6f9; }
+        .card { margin-bottom: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); border: none; }
+        .stats-box { font-size: 1.4rem; font-weight: bold; text-align: center; }
+        .stats-label { font-size: 0.8rem; color: #666; text-align: center; display: block; text-transform: uppercase; letter-spacing: 1px;}
+        .pulsar { animation: pulse 1s infinite; }
+        @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.02); } 100% { transform: scale(1); } }
+        h5.sec-title { font-size: 1rem; font-weight: bold; color: #495057; border-left: 5px solid #0d6efd; padding-left: 10px; margin-bottom: 15px; }
+    </style>
+</head>
+<body class="container py-4">
+
+    <div id="alertaDDoS" class="alert alert-danger text-center pulsar fw-bold shadow" style="display: none;">
+        🚨 ALERTA CRÍTICO: TRÁFEGO ANÔMALO (DDoS) DETECTADO 🚨
+    </div>
+
+    <h2 class="mb-5 text-center fw-bold text-primary">Plataforma de Monitoramento DevOps</h2>
+
+    <h5 class="sec-title">🕵️ Segurança & Acesso</h5>
+    <div class="row mb-3">
+        <div class="col-md-6">
+            <div class="card p-3">
+                <span class="stats-label">Autenticação (Brute-Force)</span>
+                <div id="secLogin" class="stats-box text-success">Seguro</div>
+                <small id="secLoginDesc" class="text-center text-muted">--</small>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card p-3">
+                <span class="stats-label">Scanner de Vulnerabilidade (CVE)</span>
+                <div id="secVuln" class="stats-box text-success">Limpo</div>
+                <small id="secVulnDesc" class="text-center text-muted">--</small>
+            </div>
+        </div>
+    </div>
+
+    <h5 class="sec-title">📂 Banco de Dados</h5>
+    <div class="row mb-3">
+        <div class="col-md-3"><div class="card p-3"><span class="stats-label">QPS</span><div id="dbQps" class="stats-box text-primary">0</div></div></div>
+        <div class="col-md-3"><div class="card p-3"><span class="stats-label">Slow Queries</span><div id="dbSlow" class="stats-box text-warning">0</div></div></div>
+        <div class="col-md-3"><div class="card p-3"><span class="stats-label">Tamanho (MB)</span><div id="dbSize" class="stats-box text-dark">0</div></div></div>
+        <div class="col-md-3"><div class="card p-3"><span class="stats-label">Status</span><div id="dbStatus" class="stats-box text-success">--</div></div></div>
+    </div>
+
+    <h5 class="sec-title">🌍 DNS & SMTP</h5>
+    <div class="row mb-3">
+        <div class="col-md-3"><div class="card p-3"><span class="stats-label">DNS QPS</span><div id="dnsQps" class="stats-box text-info">0</div></div></div>
+        <div class="col-md-3"><div class="card p-3"><span class="stats-label">DNS Erro</span><div id="dnsErro" class="stats-box text-danger">0%</div></div></div>
+        <div class="col-md-3"><div class="card p-3"><span class="stats-label">SMTP Entrega</span><div id="smtpTaxa" class="stats-box text-success">0%</div></div></div>
+        <div class="col-md-3"><div class="card p-3"><span class="stats-label">SMTP Erro</span><div id="smtpErro" class="stats-box text-danger">0%</div></div></div>
+    </div>
+
+    <h5 class="sec-title">📊 Métricas Tempo Real</h5>
+    <div class="row">
+        <div class="col-md-4"><div class="card p-3"><h6>Web Latência (ms)</h6><canvas id="chartWeb"></canvas></div></div>
+        <div class="col-md-4"><div class="card p-3"><h6>CPU Host (%)</h6><canvas id="chartCpu"></canvas></div></div>
+        <div class="col-md-4"><div class="card p-3"><h6>Tráfego (Reqs/10s)</h6><canvas id="chartRps"></canvas></div></div>
+    </div>
+
+    <div class="row mt-3">
+        <div class="col-12">
+            <div class="card p-4 border border-danger">
+                <h5 class="text-danger fw-bold">🛡️ Log de Incidentes (Segurança & Performance)</h5>
+                <table class="table table-striped table-hover mt-2"><thead class="table-light"><tr><th>Hora</th><th>Alvo</th><th>Status</th><th>Mensagem</th></tr></thead><tbody id="tabelaLogs"></tbody></table>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // CONFIGURAÇÃO CHARTS
+        const createChart = (id,l,c) => new Chart(document.getElementById(id).getContext('2d'), { type:'line', data:{labels:[],datasets:[{label:l,data:[],borderColor:c,tension:0.3,pointRadius:0}]}, options:{scales:{x:{display:false}},plugins:{legend:{display:false}}} });
+        const charts = { web: createChart('chartWeb','Lat', '#0d6efd'), cpu: createChart('chartCpu','CPU', '#fd7e14'), rps: createChart('chartRps','Reqs', '#dc3545') };
+
+        async function atualizar() {
+            try {
+                const res = await fetch('http://localhost:5000/api/metricas');
+                const dados = await res.json();
+                const d = { web:{l:[],d:[]}, cpu:{l:[],d:[]} };
+                let db=null, dns=null, smtp=null, auth=null, vuln=null;
+
+                dados.reverse().forEach(i => {
+                    if(i.servico==='web_server'){ d.web.l.push(i.timestamp); d.web.d.push(i.latencia_ms); }
+                    if(i.servico==='host_stats'){ d.cpu.l.push(i.timestamp); d.cpu.d.push(i.cpu_uso); }
+                    if(i.servico==='banco_dados') db=i;
+                    if(i.servico==='dns') dns=i;
+                    if(i.servico==='smtp') smtp=i;
+                    if(i.servico==='autenticacao') auth=i;
+                    if(i.servico==='vulnerabilidade') vuln=i;
+                });
+
+                // Updates
+                const up=(k,v)=>{charts[k].data.labels=v.l;charts[k].data.datasets[0].data=v.d;charts[k].update()};
+                up('web',d.web); up('cpu',d.cpu);
+
+                // Update Security Cards
+                if(auth) {
+                    const fail = auth.falhas_login_minuto;
+                    const elStat = document.getElementById('secLogin');
+                    elStat.innerText = fail > 20 ? "ALERTA" : "Seguro";
+                    elStat.className = fail > 20 ? "stats-box text-danger pulsar" : "stats-box text-success";
+                    document.getElementById('secLoginDesc').innerText = `${fail} falhas/min`;
+                }
+                if(vuln) {
+                    const cves = vuln.cves_encontradas || [];
+                    const elStat = document.getElementById('secVuln');
+                    elStat.innerText = cves.length > 0 ? "VULNERÁVEL" : "Limpo";
+                    elStat.className = cves.length > 0 ? "stats-box text-danger pulsar" : "stats-box text-success";
+                    document.getElementById('secVulnDesc').innerText = cves.length > 0 ? cves[0] : "Sistema atualizado";
+                }
+
+                // Update Stats
+                if(db){ document.getElementById('dbQps').innerText=db.qps; document.getElementById('dbSlow').innerText=db.slow_queries; document.getElementById('dbSize').innerText=db.tamanho_mb; document.getElementById('dbStatus').innerText="UP"; }
+                if(dns){ document.getElementById('dnsQps').innerText=dns.qps; document.getElementById('dnsErro').innerText=dns.taxa_erro+"%"; }
+                if(smtp){ document.getElementById('smtpTaxa').innerText=smtp.taxa_entrega+"%"; document.getElementById('smtpErro').innerText=smtp.taxa_erro+"%"; }
+
+                // DDoS & Logs
+                const seg = await (await fetch('http://localhost:5000/api/seguranca')).json();
+                document.getElementById('alertaDDoS').style.display = seg.sob_ataque ? 'block' : 'none';
+                charts.rps.data.labels.push(new Date().toLocaleTimeString()); charts.rps.data.datasets[0].data.push(seg.total_reqs); if(charts.rps.data.labels.length>20){charts.rps.data.labels.shift();charts.rps.data.datasets[0].data.shift()} charts.rps.update();
+
+                const logs = await (await fetch('http://localhost:5000/api/logs')).json();
+                const tbody = document.getElementById('tabelaLogs'); tbody.innerHTML='';
+                logs.forEach(l => tbody.innerHTML+=`<tr><td>${l.timestamp}</td><td>${l.alvo}</td><td class="text-danger fw-bold">${l.status}</td><td>${l.mensagem}</td></tr>`);
+
+            } catch (e) { console.error(e); }
+        }
+        setInterval(atualizar, 2000);
+    </script>
+</body>
+</html>
