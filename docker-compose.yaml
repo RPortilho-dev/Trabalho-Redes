@@ -1,0 +1,68 @@
+version: '3.8'
+
+services:
+  # 1. SERVIÇO MONGODB
+  mongodb:
+    image: mongo:latest
+    container_name: devops_mongodb
+    ports:
+      - "27017:27017"
+    volumes:
+      # Persiste os dados do MongoDB fora do container
+      - mongo_data:/data/db
+    restart: always
+    networks:
+      - minha_rede_bridge # <--- Adicionado: Conecta-se à rede customizada
+
+  # 2. SERVIÇO BACKEND (API Flask)
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: devops_backend
+    depends_on:
+      - mongodb
+    # Expõe a porta 5000 do container para o host
+    ports:
+      - "5000:5000"
+    # O comando para iniciar a aplicação Flask
+    command: python backend/app.py
+    environment:
+      # Configura o endereço do MongoDB usando o nome do serviço
+      # OBS: O nome do serviço (mongodb) é resolvível DENTRO da rede customizada.
+      MONGO_URI: mongodb://mongodb:27017/ 
+      # Define que o Flask deve rodar em todos os hosts (0.0.0.0)
+      FLASK_RUN_HOST: 0.0.0.0
+    restart: always
+    networks:
+      - minha_rede_bridge # <--- Adicionado: Conecta-se à rede customizada
+
+  # 3. SERVIÇO AGENTE (Coletor de Métricas)
+  # agente:
+  #   build:
+  #     context: .
+  #     dockerfile: Dockerfile
+  #   container_name: devops_agente
+  #   depends_on:
+  #     - backend
+  #   # REMOVIDO: network_mode: "bridge" - Pois isso usa a rede Host, 
+  #   # e queremos que use a rede 'minha_rede_bridge' para comunicação entre serviços.
+  #   # O agente pode acessar o backend usando o nome do serviço 'backend'.
+  #   # O comando para iniciar o coletor
+  #   command: python agent/coletor.py
+  #   environment:
+  #     # Altera o URL de destino para o endereço da API DENTRO da rede customizada.
+  #     # O nome do serviço 'backend' é resolvível para o contêiner 'devops_backend'.
+  #     API_URL: http://backend:5000/api/ingestao # <--- Corrigido: Usa o nome do serviço 'backend'
+  #   restart: always
+  #   networks:
+  #     - minha_rede_bridge # <--- Adicionado: Conecta-se à rede customizada
+
+# Volumes para persistência
+volumes:
+  mongo_data:
+
+# Definição das redes
+networks:
+  minha_rede_bridge:
+    driver: bridge

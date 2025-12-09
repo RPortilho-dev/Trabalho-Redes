@@ -7,7 +7,7 @@ import time
 app = Flask(__name__)
 CORS(app)
 
-client = MongoClient("mongodb://localhost:27017/")
+client = MongoClient("mongodb://mongodb:27017/")
 db = client["devops_monitor"]
 colecao_metricas = db["metricas"]
 colecao_logs = db["logs_seguranca"]
