@@ -4,90 +4,211 @@
     <meta charset="UTF-8">
     <title>Plataforma DevOps - IDP</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
     <style>
-        body { background-color: #f4f6f9; }
-        .card { margin-bottom: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); border: none; }
-        .stats-box { font-size: 1.4rem; font-weight: bold; text-align: center; }
-        .stats-label { font-size: 0.8rem; color: #666; text-align: center; display: block; text-transform: uppercase; letter-spacing: 1px;}
-        .pulsar { animation: pulse 1s infinite; }
-        @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.02); } 100% { transform: scale(1); } }
-        h5.sec-title { font-size: 1rem; font-weight: bold; color: #495057; border-left: 5px solid #0d6efd; padding-left: 10px; margin-bottom: 15px; }
+        /* TEMA DARK MODERNO */
+        body { 
+            background-color: #1e1e2f;
+            color: #d1d1e0;
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+        }
+        .card { 
+            background-color: #27293d;
+            border: none; 
+            border-radius: 8px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+            margin-bottom: 20px;
+            transition: transform 0.2s;
+        }
+        .card:hover { transform: translateY(-3px); }
+
+        h5.sec-title { 
+            font-size: 1.1rem; 
+            font-weight: 600; 
+            color: #ffffff; 
+            border-left: 4px solid #e14eca;
+            padding-left: 12px; 
+            margin-bottom: 20px; 
+            margin-top: 10px;
+            letter-spacing: 0.5px;
+        }
+
+        .stats-box { font-size: 1.8rem; font-weight: 700; text-align: center; margin-top: 5px; }
+        .stats-label { font-size: 0.75rem; color: #9a9a9a; text-align: center; display: block; text-transform: uppercase; letter-spacing: 1.5px; font-weight: 600;}
+
+        .pulsar { animation: pulse 1.5s infinite; }
+        @keyframes pulse { 0% { opacity: 1; transform: scale(1); } 50% { opacity: 0.8; transform: scale(1.02); } 100% { opacity: 1; transform: scale(1); } }
+
+        .alert-ddos {
+            background: linear-gradient(45deg, #ff355e, #ff0055);
+            color: white;
+            border: none;
+            box-shadow: 0 0 15px #ff0055;
+        }
+
+        .text-neon-green { color: #00f2c3; text-shadow: 0 0 5px rgba(0,242,195,0.4); }
+        .text-neon-blue { color: #1d8cf8; text-shadow: 0 0 5px rgba(29,140,248,0.4); }
+        .text-neon-orange { color: #ff8d72; }
+        .text-neon-red { color: #fd5d93; text-shadow: 0 0 5px rgba(253,93,147,0.4); }
     </style>
 </head>
-<body class="container py-4">
+<body class="container-fluid py-4 px-4">
 
-    <div id="alertaDDoS" class="alert alert-danger text-center pulsar fw-bold shadow" style="display: none;">
-        🚨 ALERTA CRÍTICO: TRÁFEGO ANÔMALO (DDoS) DETECTADO 🚨
+    <div id="alertaDDoS" class="alert alert-ddos text-center pulsar fw-bold mb-4 rounded-pill" style="display: none;">
+        <i class="fas fa-radiation-alt"></i> ALERTA CRÍTICO: TRÁFEGO ANÔMALO (DDoS) DETECTADO
     </div>
 
-    <h2 class="mb-5 text-center fw-bold text-primary">Plataforma de Monitoramento DevOps</h2>
+    <div class="row align-items-center mb-4">
+        <div class="col">
+            <h3 class="fw-bold text-white mb-0"><i class="fas fa-server text-neon-blue"></i> Monitoramento DevOps</h3>
+            <small class="text-muted">Dashboard de Infraestrutura em Tempo Real</small>
+        </div>
+        <div class="col-auto">
+            <span class="badge bg-dark border border-secondary p-2">Status: ONLINE</span>
+        </div>
+    </div>
 
-    <h5 class="sec-title">🕵️ Segurança & Acesso</h5>
-    <div class="row mb-3">
-        <div class="col-md-6">
+    <h5 class="sec-title">SEGURANÇA & ACESSO</h5>
+    <div class="row mb-2">
+        <div class="col-md-6 col-lg-3">
             <div class="card p-3">
                 <span class="stats-label">Autenticação (Brute-Force)</span>
-                <div id="secLogin" class="stats-box text-success">Seguro</div>
+                <div id="secLogin" class="stats-box text-neon-green">Seguro</div>
                 <small id="secLoginDesc" class="text-center text-muted">--</small>
             </div>
         </div>
-        <div class="col-md-6">
+        <div class="col-md-6 col-lg-3">
             <div class="card p-3">
-                <span class="stats-label">Scanner de Vulnerabilidade (CVE)</span>
-                <div id="secVuln" class="stats-box text-success">Limpo</div>
+                <span class="stats-label">Scanner Vuln. (CVE)</span>
+                <div id="secVuln" class="stats-box text-neon-green">Limpo</div>
                 <small id="secVulnDesc" class="text-center text-muted">--</small>
+            </div>
+        </div>
+        <div class="col-md-12 col-lg-6">
+            <div class="card p-3">
+                 <div class="d-flex justify-content-between align-items-center mb-2">
+                    <span class="stats-label text-start">Volume de Tráfego (Reqs/10s)</span>
+                    <span class="badge bg-danger">LIVE</span>
+                 </div>
+                 <div style="height: 60px;">
+                    <canvas id="chartRps"></canvas>
+                 </div>
             </div>
         </div>
     </div>
 
-    <h5 class="sec-title">📂 Banco de Dados</h5>
+    <h5 class="sec-title">BANCO DE DADOS & HOST</h5>
+    <div class="row mb-2">
+        <div class="col-md-2">
+            <div class="card p-3 text-center">
+                <span class="stats-label">DB QPS</span>
+                <div id="dbQps" class="stats-box text-neon-blue">0</div>
+            </div>
+        </div>
+        <div class="col-md-2">
+            <div class="card p-3 text-center">
+                <span class="stats-label">DB Size (MB)</span>
+                <div id="dbSize" class="stats-box text-white">0</div>
+            </div>
+        </div>
+        <div class="col-md-2">
+            <div class="card p-3 text-center">
+                <span class="stats-label">Slow Queries</span>
+                <div id="dbSlow" class="stats-box text-neon-orange">0</div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card p-3">
+                <span class="stats-label mb-2">CPU Host (%)</span>
+                <div style="height: 50px;"><canvas id="chartCpu"></canvas></div>
+            </div>
+        </div>
+         <div class="col-md-3">
+            <div class="card p-3">
+                <span class="stats-label mb-2">Conexões Ativas</span>
+                <div style="height: 50px;"><canvas id="chartConexoes"></canvas></div>
+            </div>
+        </div>
+    </div>
+
+    <h5 class="sec-title">REDE (WEB, DNS, SMTP)</h5>
     <div class="row mb-3">
-        <div class="col-md-3"><div class="card p-3"><span class="stats-label">QPS</span><div id="dbQps" class="stats-box text-primary">0</div></div></div>
-        <div class="col-md-3"><div class="card p-3"><span class="stats-label">Slow Queries</span><div id="dbSlow" class="stats-box text-warning">0</div></div></div>
-        <div class="col-md-3"><div class="card p-3"><span class="stats-label">Tamanho (MB)</span><div id="dbSize" class="stats-box text-dark">0</div></div></div>
-        <div class="col-md-3"><div class="card p-3"><span class="stats-label">Status</span><div id="dbStatus" class="stats-box text-success">--</div></div></div>
-    </div>
-
-    <h5 class="sec-title">🌍 DNS & SMTP</h5>
-    <div class="row mb-3">
-        <div class="col-md-3"><div class="card p-3"><span class="stats-label">DNS QPS</span><div id="dnsQps" class="stats-box text-info">0</div></div></div>
-        <div class="col-md-3"><div class="card p-3"><span class="stats-label">DNS Erro</span><div id="dnsErro" class="stats-box text-danger">0%</div></div></div>
-        <div class="col-md-3"><div class="card p-3"><span class="stats-label">SMTP Entrega</span><div id="smtpTaxa" class="stats-box text-success">0%</div></div></div>
-        <div class="col-md-3"><div class="card p-3"><span class="stats-label">SMTP Erro</span><div id="smtpErro" class="stats-box text-danger">0%</div></div></div>
-    </div>
-
-    <h5 class="sec-title">📊 Métricas Tempo Real</h5>
-    <div class="row">
-        <div class="col-md-4"><div class="card p-3"><h6>Web Latência (ms)</h6><canvas id="chartWeb"></canvas></div></div>
-        <div class="col-md-4"><div class="card p-3"><h6>CPU Host (%)</h6><canvas id="chartCpu"></canvas></div></div>
-        <div class="col-md-4"><div class="card p-3"><h6>Tráfego (Reqs/10s)</h6><canvas id="chartRps"></canvas></div></div>
-    </div>
-
-    <div class="row mt-3">
-        <div class="col-12">
-            <div class="card p-4 border border-danger">
-                <h5 class="text-danger fw-bold">🛡️ Log de Incidentes (Segurança & Performance)</h5>
-                <table class="table table-striped table-hover mt-2"><thead class="table-light"><tr><th>Hora</th><th>Alvo</th><th>Status</th><th>Mensagem</th></tr></thead><tbody id="tabelaLogs"></tbody></table>
+        <div class="col-md-4">
+            <div class="card p-3">
+                <div class="d-flex justify-content-between">
+                    <span class="stats-label">Web Latência</span>
+                    <i class="fas fa-globe text-muted"></i>
+                </div>
+                <div style="height: 120px; margin-top: 10px;">
+                    <canvas id="chartWeb"></canvas>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-8">
+            <div class="row">
+                <div class="col-md-3"><div class="card p-3"><span class="stats-label">DNS QPS</span><div id="dnsQps" class="stats-box text-info">0</div></div></div>
+                <div class="col-md-3"><div class="card p-3"><span class="stats-label">DNS Erro</span><div id="dnsErro" class="stats-box text-neon-red">0%</div></div></div>
+                <div class="col-md-3"><div class="card p-3"><span class="stats-label">SMTP Entrega</span><div id="smtpTaxa" class="stats-box text-neon-green">0%</div></div></div>
+                <div class="col-md-3"><div class="card p-3"><span class="stats-label">SMTP Erro</span><div id="smtpErro" class="stats-box text-neon-red">0%</div></div></div>
+                
+                <div class="col-md-6 mt-2">
+                    <div class="card p-2">
+                        <span class="stats-label text-start ms-2">DNS Resp (ms)</span>
+                        <div style="height: 70px;"><canvas id="chartDns"></canvas></div>
+                    </div>
+                </div>
+                <div class="col-md-6 mt-2">
+                    <div class="card p-2">
+                        <span class="stats-label text-start ms-2">SMTP Latência (ms)</span>
+                        <div style="height: 70px;"><canvas id="chartSmtp"></canvas></div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
 
     <script>
-        // CONFIGURAÇÃO CHARTS
-        const createChart = (id,l,c) => new Chart(document.getElementById(id).getContext('2d'), { type:'line', data:{labels:[],datasets:[{label:l,data:[],borderColor:c,tension:0.3,pointRadius:0}]}, options:{scales:{x:{display:false}},plugins:{legend:{display:false}}} });
-        const charts = { web: createChart('chartWeb','Lat', '#0d6efd'), cpu: createChart('chartCpu','CPU', '#fd7e14'), rps: createChart('chartRps','Reqs', '#dc3545') };
+        // CONFIGURAÇÃO DOS GRÁFICOS
+        Chart.defaults.color = '#9a9a9a';
+        Chart.defaults.borderColor = '#2d3042';
+        
+        const createChart = (id, label, color, fill=true) => {
+            const ctx = document.getElementById(id).getContext('2d');
+            let gradient = ctx.createLinearGradient(0, 0, 0, 400);
+            gradient.addColorStop(0, color.replace('1)', '0.5)'));
+            gradient.addColorStop(1, 'rgba(30, 30, 47, 0)');
 
+            return new Chart(ctx, { 
+                type: 'line', 
+                data: { labels: [], datasets: [{ label: label, data: [], borderColor: color, backgroundColor: fill ? gradient : 'transparent', borderWidth: 2, tension: 0.4, pointRadius: 0, pointHoverRadius: 4, fill: fill }] }, 
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { display: false }, y: { display: true, grid: { borderDash: [5, 5] } } } } 
+            });
+        };
+
+        const charts = {
+            web: createChart('chartWeb', 'Latência', 'rgba(29, 140, 248, 1)'),
+            cpu: createChart('chartCpu', 'CPU %', 'rgba(255, 138, 118, 1)'),
+            dns: createChart('chartDns', 'DNS ms', 'rgba(0, 242, 195, 1)', false),
+            smtp: createChart('chartSmtp', 'SMTP ms', 'rgba(225, 78, 202, 1)', false),
+            rps: createChart('chartRps', 'Reqs', 'rgba(253, 93, 147, 1)'),
+            con: createChart('chartConexoes', 'Conexões', 'rgba(29, 140, 248, 1)')
+        };
+
+        // LÓGICA DE DADOS
         async function atualizar() {
             try {
                 const res = await fetch('http://localhost:5000/api/metricas');
                 const dados = await res.json();
-                const d = { web:{l:[],d:[]}, cpu:{l:[],d:[]} };
+                const d = { web:{l:[],d:[]}, cpu:{l:[],d:[]}, con:{l:[],d:[]} };
                 let db=null, dns=null, smtp=null, auth=null, vuln=null;
 
-                dados.reverse().forEach(i => {
-                    if(i.servico==='web_server'){ d.web.l.push(i.timestamp); d.web.d.push(i.latencia_ms); }
-                    if(i.servico==='host_stats'){ d.cpu.l.push(i.timestamp); d.cpu.d.push(i.cpu_uso); }
+                dados.reverse().slice(-20).forEach(i => {
+                    const t = i.timestamp;
+                    if(i.servico==='web_server'){ d.web.l.push(t); d.web.d.push(i.latencia_ms); }
+                    if(i.servico==='host_stats'){ d.cpu.l.push(t); d.cpu.d.push(i.cpu_uso); d.con.l.push(t); d.con.d.push(i.conexoes_ativas||0); }
                     if(i.servico==='banco_dados') db=i;
                     if(i.servico==='dns') dns=i;
                     if(i.servico==='smtp') smtp=i;
@@ -95,39 +216,46 @@
                     if(i.servico==='vulnerabilidade') vuln=i;
                 });
 
-                // Updates
                 const up=(k,v)=>{charts[k].data.labels=v.l;charts[k].data.datasets[0].data=v.d;charts[k].update()};
-                up('web',d.web); up('cpu',d.cpu);
+                up('web',d.web); up('cpu',d.cpu); up('con',d.con);
 
-                // Update Security Cards
+                if(dns) {
+                    if(charts.dns.data.labels.length > 20) { charts.dns.data.labels.shift(); charts.dns.data.datasets[0].data.shift(); }
+                    charts.dns.data.labels.push(dns.timestamp); charts.dns.data.datasets[0].data.push(dns.tempo_resposta_ms);
+                    charts.dns.update();
+                }
+                if(smtp) {
+                    if(charts.smtp.data.labels.length > 20) { charts.smtp.data.labels.shift(); charts.smtp.data.datasets[0].data.shift(); }
+                    charts.smtp.data.labels.push(smtp.timestamp); charts.smtp.data.datasets[0].data.push(smtp.latencia_conexao_ms);
+                    charts.smtp.update();
+                }
+
                 if(auth) {
                     const fail = auth.falhas_login_minuto;
                     const elStat = document.getElementById('secLogin');
                     elStat.innerText = fail > 20 ? "ALERTA" : "Seguro";
-                    elStat.className = fail > 20 ? "stats-box text-danger pulsar" : "stats-box text-success";
+                    elStat.className = fail > 20 ? "stats-box text-neon-red pulsar" : "stats-box text-neon-green";
                     document.getElementById('secLoginDesc').innerText = `${fail} falhas/min`;
                 }
                 if(vuln) {
                     const cves = vuln.cves_encontradas || [];
                     const elStat = document.getElementById('secVuln');
                     elStat.innerText = cves.length > 0 ? "VULNERÁVEL" : "Limpo";
-                    elStat.className = cves.length > 0 ? "stats-box text-danger pulsar" : "stats-box text-success";
+                    elStat.className = cves.length > 0 ? "stats-box text-neon-red pulsar" : "stats-box text-neon-green";
                     document.getElementById('secVulnDesc').innerText = cves.length > 0 ? cves[0] : "Sistema atualizado";
                 }
 
-                // Update Stats
-                if(db){ document.getElementById('dbQps').innerText=db.qps; document.getElementById('dbSlow').innerText=db.slow_queries; document.getElementById('dbSize').innerText=db.tamanho_mb; document.getElementById('dbStatus').innerText="UP"; }
+                if(db){ document.getElementById('dbQps').innerText=db.qps; document.getElementById('dbSlow').innerText=db.slow_queries; document.getElementById('dbSize').innerText=db.tamanho_mb; }
                 if(dns){ document.getElementById('dnsQps').innerText=dns.qps; document.getElementById('dnsErro').innerText=dns.taxa_erro+"%"; }
                 if(smtp){ document.getElementById('smtpTaxa').innerText=smtp.taxa_entrega+"%"; document.getElementById('smtpErro').innerText=smtp.taxa_erro+"%"; }
 
-                // DDoS & Logs
                 const seg = await (await fetch('http://localhost:5000/api/seguranca')).json();
                 document.getElementById('alertaDDoS').style.display = seg.sob_ataque ? 'block' : 'none';
-                charts.rps.data.labels.push(new Date().toLocaleTimeString()); charts.rps.data.datasets[0].data.push(seg.total_reqs); if(charts.rps.data.labels.length>20){charts.rps.data.labels.shift();charts.rps.data.datasets[0].data.shift()} charts.rps.update();
-
-                const logs = await (await fetch('http://localhost:5000/api/logs')).json();
-                const tbody = document.getElementById('tabelaLogs'); tbody.innerHTML='';
-                logs.forEach(l => tbody.innerHTML+=`<tr><td>${l.timestamp}</td><td>${l.alvo}</td><td class="text-danger fw-bold">${l.status}</td><td>${l.mensagem}</td></tr>`);
+                
+                charts.rps.data.labels.push(new Date().toLocaleTimeString()); 
+                charts.rps.data.datasets[0].data.push(seg.total_reqs);
+                if(charts.rps.data.labels.length>20){charts.rps.data.labels.shift();charts.rps.data.datasets[0].data.shift()} 
+                charts.rps.update();
 
             } catch (e) { console.error(e); }
         }
